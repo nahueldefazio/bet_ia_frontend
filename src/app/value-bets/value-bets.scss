@@ -68,8 +68,10 @@
   border-radius: var(--radius);
   padding: 1.75rem;
   width: 100%;
-  max-width: 520px;
+  max-width: 580px;
   position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-close {
@@ -135,16 +137,18 @@
 }
 
 .modal-ai {
-  background: var(--surface2);
-  border-left: 3px solid var(--accent);
+  background: var(--surface3);
+  border-left: 4px solid var(--accent);
   border-radius: 0 8px 8px 0;
-  padding: 0.85rem 1rem;
+  padding: 1rem 1.25rem;
 }
 
 .modal-ai-title {
-  font-weight: 600;
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+  letter-spacing: 0.02em;
 }
 
 .ai-loading {
@@ -154,7 +158,8 @@
 }
 
 .modal-ai-text {
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text);
+  white-space: pre-line;
 }
