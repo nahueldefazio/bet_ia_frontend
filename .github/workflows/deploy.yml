@@ -1,0 +1,37 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy al VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            # Clonar si es la primera vez
+            mkdir -p /var/www/bets
+            if [ ! -d /var/www/bets/frontend ]; then
+              git clone https://github.com/nahueldefazio/bet_ia_frontend.git /var/www/bets/frontend
+            fi
+
+            cd /var/www/bets/frontend
+            git pull origin main
+
+            npm ci
+            npm run build
+            # El build genera /var/www/bets/backend/public automáticamente
+
+            # Recargar backend para servir los nuevos archivos estáticos
+            pm2 restart value-betting || true
+
+            echo "✅ Frontend desplegado correctamente"
