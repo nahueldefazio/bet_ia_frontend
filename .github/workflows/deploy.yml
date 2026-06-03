@@ -29,7 +29,7 @@ jobs:
             git pull origin main
 
             npm ci
-            npm run build
+            npm run build:vps
             # El build genera /var/www/bets/backend/public automáticamente
 
             # Recargar backend para servir los nuevos archivos estáticos
