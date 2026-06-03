@@ -1,0 +1,27 @@
+<nav class="navbar">
+  <a class="navbar-brand" routerLink="/dashboard">
+    <span class="brand-icon">⚡</span>
+    <span class="brand-text">Value Betting</span>
+  </a>
+  <ul class="nav-links">
+    <li>
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <span>📊</span> Dashboard
+      </a>
+    </li>
+    <li>
+      <a routerLink="/value-bets" routerLinkActive="active">
+        <span>🎯</span> Apuestas +EV
+      </a>
+    </li>
+    <li>
+      <a routerLink="/alerts" routerLinkActive="active">
+        <span>📋</span> Historial
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<main>
+  <router-outlet />
+</main>

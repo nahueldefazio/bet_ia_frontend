@@ -1,0 +1,94 @@
+<div class="page-wrapper">
+  @let isLoading = loading();
+  @let hasError = error();
+  @let data = stats();
+  @let bets = topBets();
+
+  @if (isLoading) {
+    <div class="loading-center">
+      <div class="spinner"></div>
+      <span>Cargando datos...</span>
+    </div>
+  }
+
+  @if (hasError && !isLoading) {
+    <div class="empty-state">
+      ❌ No se pudo conectar con el servidor. Verificá que el backend esté corriendo.
+    </div>
+  }
+
+  @if (data && !isLoading) {
+    <div class="stats-grid">
+      <div class="stat-card card">
+        <div class="stat-value text-accent">{{ data.totalMatches }}</div>
+        <div class="stat-label text-muted text-sm">Partidos en BD</div>
+      </div>
+      <div class="stat-card card">
+        <div class="stat-value text-accent">{{ data.totalPredictions }}</div>
+        <div class="stat-label text-muted text-sm">Predicciones</div>
+      </div>
+      <div class="stat-card card">
+        <div class="stat-value text-accent">{{ data.totalAlerts }}</div>
+        <div class="stat-label text-muted text-sm">Alertas enviadas</div>
+      </div>
+      <div class="stat-card card highlight">
+        <div class="stat-value ev-value">
+          {{ bets[0] ? evPercent(bets[0].expectedValue) : '—' }}
+        </div>
+        <div class="stat-label text-muted text-sm">Mejor EV activo</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h2 class="page-title">🎯 Top Apuestas +EV</h2>
+      <a routerLink="/value-bets" class="see-all">Ver todas →</a>
+    </div>
+
+    @if (bets.length === 0) {
+      <div class="empty-state card">
+        🔍 No hay apuestas +EV disponibles en las próximas 48h.<br>
+        <span class="text-sm text-muted">El ciclo automático las buscará en el próximo intervalo.</span>
+      </div>
+    } @else {
+      <div class="bets-grid">
+        @for (bet of bets; track bet.id) {
+          <div class="bet-card card">
+            <div class="bet-header">
+              <span class="badge" [class]="bet.confidence.toLowerCase()">{{ bet.confidence }}</span>
+              <span class="bet-market text-sm text-muted">{{ bet.market }}</span>
+            </div>
+            <div class="bet-match font-bold">{{ bet.match?.homeTeam }} vs {{ bet.match?.awayTeam }}</div>
+            <div class="text-sm text-muted">{{ bet.match?.league }} · {{ bet.match ? formatDate(bet.match.matchDate) : '' }}</div>
+            <div class="bet-stats">
+              <div class="bet-stat">
+                <span class="stat-num text-accent">{{ bet.bestOdd | number:'1.2-2' }}</span>
+                <span class="stat-desc text-sm text-muted">Cuota<br>{{ bet.bookmaker }}</span>
+              </div>
+              <div class="bet-stat">
+                <span class="stat-num text-green">{{ evPercent(bet.expectedValue) }}</span>
+                <span class="stat-desc text-sm text-muted">Valor<br>esperado (EV)</span>
+              </div>
+              <div class="bet-stat">
+                <span class="stat-num">{{ probPercent(bet.trueProbability) }}</span>
+                <span class="stat-desc text-sm text-muted">Prob.<br>modelo</span>
+              </div>
+            </div>
+            <div class="bet-outcome">Apostar: <strong>{{ resolveOutcome(bet) }}</strong></div>
+            @if (bet.aiAnalysis) {
+              <div class="ai-note text-sm text-muted">
+                🤖 {{ bet.aiAnalysis | slice:0:120 }}{{ bet.aiAnalysis.length > 120 ? '...' : '' }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @let updated = lastUpdated();
+    @if (updated) {
+      <p class="last-updated text-sm text-muted">
+        Última actualización: {{ updated | date:'HH:mm:ss' }}
+      </p>
+    }
+  }
+</div>

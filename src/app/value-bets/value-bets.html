@@ -1,0 +1,159 @@
+<div class="page-wrapper">
+  @let updated = lastUpdated();
+  @let isLoading = loading();
+  @let hasError = error();
+  @let betList = bets();
+
+  <div class="page-header">
+    <h1 class="page-title">🎯 Apuestas con Valor Positivo</h1>
+    @if (updated) {
+      <span class="text-sm text-muted">Actualizado: {{ updated | date:'HH:mm:ss' }}</span>
+    }
+  </div>
+
+  <div class="filter-bar">
+    <select [ngModel]="filterLeague()" (ngModelChange)="filterLeague.set($event)">
+      <option value="">Todas las ligas</option>
+      @for (l of leagues(); track l) { <option [value]="l">{{ l }}</option> }
+    </select>
+    <select [ngModel]="filterMarket()" (ngModelChange)="filterMarket.set($event)">
+      <option value="">Todos los mercados</option>
+      @for (m of markets(); track m) { <option [value]="m">{{ m }}</option> }
+    </select>
+    <select [ngModel]="filterConfidence()" (ngModelChange)="filterConfidence.set($event)">
+      <option value="">Cualquier confianza</option>
+      <option value="HIGH">HIGH</option>
+      <option value="MEDIUM">MEDIUM</option>
+      <option value="LOW">LOW</option>
+    </select>
+    <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+      <option value="expectedValue">Ordenar: Mejor EV</option>
+      <option value="matchDate">Ordenar: Fecha (próximos primero)</option>
+      <option value="bestOdd">Ordenar: Cuota más alta</option>
+      <option value="trueProbability">Ordenar: P. real más alta</option>
+    </select>
+    @if (filterLeague() || filterMarket() || filterConfidence()) {
+      <button class="clear-btn" (click)="clearFilters()">✕ Limpiar</button>
+    }
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-center"><div class="spinner"></div><span>Cargando apuestas...</span></div>
+  }
+
+  @if (hasError && !isLoading) {
+    <div class="empty-state">❌ No se pudo conectar con el servidor.</div>
+  }
+
+  @if (!isLoading && !hasError) {
+    @if (betList.length === 0) {
+      <div class="empty-state card">
+        🔍 No hay apuestas +EV que coincidan con los filtros seleccionados.
+      </div>
+    } @else {
+      <div class="table-wrapper card">
+        <div class="count text-sm text-muted">
+          {{ betList.length }} apuesta{{ betList.length !== 1 ? 's' : '' }} encontrada{{ betList.length !== 1 ? 's' : '' }}
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Partido</th>
+              <th>Liga</th>
+              <th>Mercado</th>
+              <th>Apostar a</th>
+              <th>Cuota</th>
+              <th title="Ganancia promedio por cada $1 apostado a largo plazo">Valor Esperado (EV)</th>
+              <th title="Probabilidad que estima nuestro modelo">Prob. Modelo</th>
+              <th title="Probabilidad que le asigna la casa de apuestas (1 / cuota)">Prob. Casa</th>
+              <th>Confianza</th>
+              <th>Análisis IA</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (bet of betList; track bet.id) {
+              <tr class="clickable-row" (click)="openModal(bet)" (keydown.enter)="openModal(bet)" tabindex="0">
+                <td>
+                  <div class="font-bold">{{ bet.match?.homeTeam }} vs {{ bet.match?.awayTeam }}</div>
+                  <div class="text-sm text-muted">{{ bet.match ? formatDate(bet.match.matchDate) : '—' }}</div>
+                </td>
+                <td class="text-sm">{{ bet.match?.league ?? '—' }}</td>
+                <td><span class="market-tag">{{ bet.market }}</span></td>
+                <td class="font-bold text-accent">{{ resolveOutcome(bet) }}</td>
+                <td>
+                  <span class="text-accent font-bold">{{ bet.bestOdd | number:'1.2-2' }}</span>
+                  <div class="text-sm text-muted">{{ bet.bookmaker }}</div>
+                </td>
+                <td class="text-green font-bold">{{ evPercent(bet.expectedValue) }}</td>
+                <td>{{ probPercent(bet.trueProbability) }}</td>
+                <td class="text-muted">{{ probPercent(bet.impliedProbability) }}</td>
+                <td><span class="badge" [class]="bet.confidence.toLowerCase()">{{ bet.confidence }}</span></td>
+                <td>
+                  @if (bet.aiAnalysis) {
+                    <div class="ai-cell" [title]="bet.aiAnalysis">
+                      {{ bet.aiAnalysis | slice:0:80 }}{{ bet.aiAnalysis.length > 80 ? '…' : '' }}
+                    </div>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
+
+@let bet = selectedBet();
+@if (bet) {
+  <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
+    <dialog class="modal-box" open (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeModal()">✕</button>
+
+      <div class="modal-header-row">
+        <span class="badge" [class]="bet.confidence.toLowerCase()">{{ bet.confidence }}</span>
+        <span class="market-tag">{{ bet.market }}</span>
+      </div>
+
+      <h2 class="modal-title">{{ bet.match?.homeTeam }} vs {{ bet.match?.awayTeam }}</h2>
+      <p class="modal-sub text-muted text-sm">
+        {{ bet.match?.league }} · {{ bet.match ? formatDate(bet.match.matchDate) : '' }}
+      </p>
+
+      <div class="modal-apostar">
+        Apostar a: <strong class="text-accent">{{ resolveOutcome(bet) }}</strong>
+        <span class="text-muted"> en </span>
+        <strong>{{ bet.bookmaker }}</strong>
+        <span class="text-accent font-bold"> @ {{ bet.bestOdd | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="modal-stats">
+        <div class="mstat">
+          <span class="mstat-val text-green">{{ evPercent(bet.expectedValue) }}</span>
+          <span class="mstat-label text-muted">Valor Esperado</span>
+        </div>
+        <div class="mstat">
+          <span class="mstat-val">{{ probPercent(bet.trueProbability) }}</span>
+          <span class="mstat-label text-muted">Prob. Modelo</span>
+        </div>
+        <div class="mstat">
+          <span class="mstat-val text-muted">{{ probPercent(bet.impliedProbability) }}</span>
+          <span class="mstat-label text-muted">Prob. Casa</span>
+        </div>
+      </div>
+
+      <div class="modal-ai">
+        <p class="modal-ai-title">🤖 Análisis de IA</p>
+        @if (aiLoading()) {
+          <div class="ai-loading"><div class="spinner"></div><span class="text-muted text-sm">Analizando...</span></div>
+        } @else if (bet.aiAnalysis) {
+          <p class="modal-ai-text">{{ bet.aiAnalysis }}</p>
+        } @else {
+          <p class="text-muted text-sm">No se pudo obtener el análisis.</p>
+        }
+      </div>
+    </dialog>
+  </div>
+}

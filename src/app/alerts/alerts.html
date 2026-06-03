@@ -1,0 +1,93 @@
+<div class="page-wrapper">
+  <h1 class="page-title">📋 Historial de Alertas</h1>
+
+  @let isLoading = loading();
+  @let hasError = error();
+  @let alertList = alerts();
+
+  @if (isLoading) {
+    <div class="loading-center"><div class="spinner"></div><span>Cargando historial...</span></div>
+  }
+
+  @if (hasError && !isLoading) {
+    <div class="empty-state">❌ No se pudo conectar con el servidor.</div>
+  }
+
+  @if (!isLoading && !hasError) {
+    @if (alertList.length > 0) {
+      <div class="summary-strip">
+        <div class="summary-item won">
+          <span class="summary-num">{{ wonCount() }}</span>
+          <span class="text-sm">Ganadas ✅</span>
+        </div>
+        <div class="summary-item lost">
+          <span class="summary-num">{{ lostCount() }}</span>
+          <span class="text-sm">Perdidas ❌</span>
+        </div>
+        <div class="summary-item pending">
+          <span class="summary-num">{{ pendingCount() }}</span>
+          <span class="text-sm">Pendientes ⏳</span>
+        </div>
+        @if (wonCount() + lostCount() > 0) {
+          <div class="summary-item rate">
+            <span class="summary-num">{{ (wonCount() / (wonCount() + lostCount()) * 100) | number:'1.0-0' }}%</span>
+            <span class="text-sm">Tasa de acierto</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (alertList.length === 0) {
+      <div class="empty-state card">
+        📭 No hay alertas en el historial aún. Se agregarán cuando el bot detecte apuestas +EV.
+      </div>
+    } @else {
+      <div class="table-wrapper card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Partido</th>
+              <th>Liga</th>
+              <th>Mercado</th>
+              <th>Apostado</th>
+              <th>Cuota</th>
+              <th>EV</th>
+              <th>Confianza</th>
+              <th>Enviado</th>
+              <th>Resultado</th>
+              <th>¿Ganó?</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (alert of alertList; track alert.id) {
+              @let result = getResult(alert);
+              <tr [class.row-won]="result.won === true" [class.row-lost]="result.won === false">
+                <td>
+                  <div class="font-bold">{{ alert.match.homeTeam }} vs {{ alert.match.awayTeam }}</div>
+                  <div class="text-sm text-muted">{{ formatDate(alert.match.matchDate) }}</div>
+                </td>
+                <td class="text-sm">{{ alert.match.league }}</td>
+                <td><span class="market-tag">{{ alert.prediction.market }}</span></td>
+                <td class="font-bold text-accent">{{ alert.prediction.outcome }}</td>
+                <td class="text-accent font-bold">{{ alert.prediction.bestOdd | number:'1.2-2' }}</td>
+                <td class="text-green font-bold">{{ evPercent(alert.prediction.expectedValue) }}</td>
+                <td><span class="badge" [class]="alert.prediction.confidence.toLowerCase()">{{ alert.prediction.confidence }}</span></td>
+                <td class="text-sm text-muted">{{ formatDate(alert.sentAt) }}</td>
+                <td class="font-bold">{{ result.text }}</td>
+                <td>
+                  @if (result.won === null) {
+                    <span class="result-badge pending">⏳ Pendiente</span>
+                  } @else if (result.won) {
+                    <span class="result-badge won">✅ Ganada</span>
+                  } @else {
+                    <span class="result-badge lost">❌ Perdida</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
