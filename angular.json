@@ -39,7 +39,7 @@
             "hostinger": {
               "outputPath": {
                 "base": "dist",
-                "browser": "browser"
+                "browser": ""
               },
               "budgets": [
                 {
