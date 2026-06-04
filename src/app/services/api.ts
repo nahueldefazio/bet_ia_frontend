@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Alert, DashboardStats, Prediction } from '../models/types';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly base = '/api';
+  private readonly base = `${environment.apiUrl}/api`;
 
   constructor(private readonly http: HttpClient) {}
 
