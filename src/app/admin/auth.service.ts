@@ -45,4 +45,12 @@ export class AuthService {
       { headers: this.getHeaders() },
     );
   }
+
+  triggerEloSync(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.base}/sync-elo`,
+      {},
+      { headers: this.getHeaders() },
+    );
+  }
 }

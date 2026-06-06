@@ -24,6 +24,17 @@ import { AuthService } from './auth.service';
           }
         </section>
 
+        <section>
+          <h3>Ratings Elo — Selecciones nacionales</h3>
+          <p class="desc">Descarga y procesa ~150 años de resultados internacionales para calcular los ratings Elo de cada selección. Usado para mejorar las predicciones del Mundial. Tarda ~30s.</p>
+          <button class="action" (click)="syncElo()" [disabled]="syncingElo()">
+            {{ syncingElo() ? 'Procesando...' : '🌍 Sincronizar ratings Elo' }}
+          </button>
+          @if (eloMsg()) {
+            <p class="msg" [class.error]="eloError()">{{ eloMsg() }}</p>
+          }
+        </section>
+
         <a routerLink="/dashboard" class="back">← Volver al dashboard</a>
       </div>
     </div>
@@ -87,6 +98,9 @@ export class AdminComponent {
   readonly syncing = signal(false);
   readonly syncMsg = signal('');
   readonly syncError = signal(false);
+  readonly syncingElo = signal(false);
+  readonly eloMsg = signal('');
+  readonly eloError = signal(false);
 
   constructor(private readonly auth: AuthService, private readonly router: Router) {}
 
@@ -103,6 +117,23 @@ export class AdminComponent {
         this.syncing.set(false);
         this.syncError.set(true);
         this.syncMsg.set('Error al sincronizar. Verificá tu sesión.');
+      },
+    });
+  }
+
+  syncElo() {
+    this.syncingElo.set(true);
+    this.eloMsg.set('');
+    this.auth.triggerEloSync().subscribe({
+      next: (res) => {
+        this.syncingElo.set(false);
+        this.eloError.set(false);
+        this.eloMsg.set(res.message);
+      },
+      error: () => {
+        this.syncingElo.set(false);
+        this.eloError.set(true);
+        this.eloMsg.set('Error al sincronizar Elo. Verificá tu sesión.');
       },
     });
   }
