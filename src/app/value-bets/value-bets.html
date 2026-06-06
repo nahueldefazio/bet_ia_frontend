@@ -26,12 +26,6 @@
       <option value="MEDIUM">MEDIUM</option>
       <option value="LOW">LOW</option>
     </select>
-    <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
-      <option value="expectedValue">Ordenar: Mejor EV</option>
-      <option value="matchDate">Ordenar: Fecha (próximos primero)</option>
-      <option value="bestOdd">Ordenar: Cuota más alta</option>
-      <option value="trueProbability">Ordenar: P. real más alta</option>
-    </select>
     @if (filterLeague() || filterMarket() || filterConfidence()) {
       <button class="clear-btn" (click)="clearFilters()">✕ Limpiar</button>
     }
@@ -58,15 +52,15 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Partido</th>
-              <th>Liga</th>
-              <th>Mercado</th>
-              <th>Apostar a</th>
-              <th>Cuota</th>
-              <th title="Ganancia promedio por cada $1 apostado a largo plazo">Valor Esperado (EV)</th>
-              <th title="Probabilidad que estima nuestro modelo">Prob. Modelo</th>
-              <th title="Probabilidad que le asigna la casa de apuestas (1 / cuota)">Prob. Casa</th>
-              <th>Confianza</th>
+              <th class="sortable" tabindex="0" (click)="setSort('matchDate')" (keydown.enter)="setSort('matchDate')" [class.active]="sortBy()==='matchDate'">Partido{{ sortIcon('matchDate') }}</th>
+              <th class="sortable" tabindex="0" (click)="setSort('league')" (keydown.enter)="setSort('league')" [class.active]="sortBy()==='league'">Liga{{ sortIcon('league') }}</th>
+              <th class="sortable" tabindex="0" (click)="setSort('market')" (keydown.enter)="setSort('market')" [class.active]="sortBy()==='market'">Mercado{{ sortIcon('market') }}</th>
+              <th class="sortable" tabindex="0" (click)="setSort('outcome')" (keydown.enter)="setSort('outcome')" [class.active]="sortBy()==='outcome'">Apostar a{{ sortIcon('outcome') }}</th>
+              <th class="sortable" tabindex="0" (click)="setSort('bestOdd')" (keydown.enter)="setSort('bestOdd')" [class.active]="sortBy()==='bestOdd'">Cuota{{ sortIcon('bestOdd') }}</th>
+              <th class="sortable" tabindex="0" (click)="setSort('expectedValue')" (keydown.enter)="setSort('expectedValue')" [class.active]="sortBy()==='expectedValue'" title="Ganancia promedio por cada $1 apostado a largo plazo">Valor Esperado (EV){{ sortIcon('expectedValue') }}</th>
+              <th class="sortable" tabindex="0" (click)="setSort('trueProbability')" (keydown.enter)="setSort('trueProbability')" [class.active]="sortBy()==='trueProbability'" title="Probabilidad que estima nuestro modelo">Prob. Modelo{{ sortIcon('trueProbability') }}</th>
+              <th class="sortable" tabindex="0" (click)="setSort('impliedProbability')" (keydown.enter)="setSort('impliedProbability')" [class.active]="sortBy()==='impliedProbability'" title="Probabilidad que le asigna la casa de apuestas (1 / cuota)">Prob. Casa{{ sortIcon('impliedProbability') }}</th>
+              <th class="sortable" tabindex="0" (click)="setSort('confidence')" (keydown.enter)="setSort('confidence')" [class.active]="sortBy()==='confidence'">Confianza{{ sortIcon('confidence') }}</th>
               <th>Análisis IA</th>
             </tr>
           </thead>
